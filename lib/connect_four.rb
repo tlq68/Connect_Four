@@ -2,7 +2,6 @@
 
 require 'colorize'
 
-
 class Game
   attr_accessor :turn_counter, :board, :player1, :player2
 
@@ -31,10 +30,9 @@ class Game
 
   def gameplay
     while !board_full?
-      # system('clear') || system('cls')
+      system('clear') || system('cls')
       show_board_and_tokens
       puts "Turn #{@turn_counter + 1}".light_green
-
       current_player = which_turn(@player1, @player2)
       column_selection = current_player.column_selection
       break if column_selection == 'q'
@@ -53,7 +51,6 @@ class Game
     puts 'You want to ' + 'connect four of your tokens'.cyan + ' in a row horizontally, vertically' + "\nor diagonally to win!"
     puts "\nDuring the game, you will select a column (" + '1-7'.light_red + ') to drop in your token.'
     puts "\n--------------------------------------------------------------------------"
-
   end
 
   def choose_player
@@ -96,7 +93,6 @@ class Game
     while player1.symbol == player2.symbol
       unless player_symbols_exist?(player1, player2)
         reset_symbols(player1, player2)
-        break 
       end
       set_tokens(player1)
       set_tokens(player2)
@@ -117,7 +113,7 @@ class Game
   end
 
   def board_full?
-    @turn_counter >= 43
+    @turn_counter >= 42
   end
 
   def which_turn(player1, player2)
@@ -196,18 +192,10 @@ class Board
   end
 
   def win_vertical?(symbol)
-    puts 'vertical'
-
     (0..5).each do |row|
       (0..6).each do |column|
         next if row < 3
-        begin
           vertical_win = @board[row][column] == symbol && @board[row - 1][column] == symbol && @board[row - 2][column] == symbol && @board[row - 3][column] == symbol
-          
-        rescue NoMethodError
-          puts "vertical #{row} row, #{column} column".light_red
-          
-        end
           return vertical_win if vertical_win == true
       end
     end
@@ -215,18 +203,10 @@ class Board
   end
 
   def win_horizontal?(symbol)
-    puts 'horizontal'
-
     (0..5).each do |row|
       (0..6).each do |column|
         next if column < 4
-        begin
           horizontal_win = @board[row][column] == symbol && @board[row][column - 1] == symbol && @board[row][column - 2] == symbol && @board[row][column - 3] == symbol
-          
-        rescue NoMethodError
-          puts "horizontal #{row} row, #{column} column".light_red
-          
-        end
           return horizontal_win if horizontal_win == true
       end
     end
@@ -234,20 +214,11 @@ class Board
   end
 
   def win_left_diagonal?(symbol)
-    puts 'left diag.'
-
     (0...5).each do |row|
       (0..6).each do |column|
         break if row > 2
         break if column > 3
-        begin
         left_diagonal_win =  @board[row][column] == symbol && @board[row + 1][column + 1] == symbol && @board[row + 2][column + 2] == symbol && @board[row + 3][column + 3] == symbol
-          
-        rescue NoMethodError
-          puts "left diag. #{row} row, #{column} column".light_red
-          
-        end
-
         return left_diagonal_win if left_diagonal_win == true
       end
     end
@@ -255,23 +226,14 @@ class Board
   end
 
   def win_right_diagonal?(symbol)
-    puts 'right diag'
-
     (0..5).each do |row|
       (0..6).each do |column|
         next if (row + 3) >= 6
         next if (column - 3) < 0
-        begin
-          right_diagonal_win = @board[row][column] == symbol && @board[row + 1][column - 1] == symbol && @board[row + 2][column - 2] == symbol && @board[row + 3][column - 3] == symbol
-          
-        rescue NoMethodError
-          puts "right diag. #{row} row, #{column} column".light_red
-          
-        end
+          right_diagonal_win = @board[row][column] == symbol && @board[row + 1][column - 1] == symbol && @board[row + 2][column - 2] == symbol && @board[row + 3][column - 3] == symbol          
           return right_diagonal_win if right_diagonal_win == true
       end
     end
-
     false
   end
 end
@@ -370,4 +332,4 @@ end
 
 game = Game.new
 
-# game.play
+game.play

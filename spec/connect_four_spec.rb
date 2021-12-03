@@ -255,6 +255,7 @@ describe Board do
         square.change_space(3, player.symbol)
         square.change_space(3, player.symbol)
         square.change_space(3, player.symbol)
+        square.display_board
       end
       it 'returns true' do
         selected_line = square.win_vertical?(player.symbol)
@@ -273,6 +274,7 @@ describe Board do
         square.change_space(3, player.symbol)
         square.change_space(3, player.symbol)
         square.change_space(3, player.symbol)
+        square.display_board
       end
       it 'returns false' do
         selected_line = square.win_vertical?(player.symbol)
@@ -290,6 +292,7 @@ describe Board do
         square.change_space(4, player.symbol)
         square.change_space(5, player.symbol)
         square.change_space(6, player.symbol)
+        square.display_board
       end
       it 'returns true' do
         selected_line = square.win_horizontal?(player.symbol)
@@ -305,6 +308,7 @@ describe Board do
         square.change_space(1, player.symbol)
         square.change_space(2, player.symbol)
         square.change_space(6, player.symbol)
+        square.display_board
       end
       it 'returns false' do
         selected_line = square.win_horizontal?(player.symbol)
@@ -329,6 +333,7 @@ describe Board do
         square.change_space(3, computer.symbol)
         square.change_space(3, computer.symbol)
         square.change_space(3, player.symbol)
+        square.display_board
       end
       it 'returns true' do
         selected_line = square.win_left_diagonal?(player.symbol)
@@ -377,6 +382,7 @@ describe Board do
         square.change_space(0, player.symbol)
         square.change_space(0, player.symbol)
         square.change_space(0, player.symbol)
+        square.display_board
       end
       it 'returns false' do
         selected_line = square.win_left_diagonal?(player.symbol)
@@ -407,6 +413,7 @@ describe Board do
         square.change_space(3, computer.symbol)
         square.change_space(3, computer.symbol)
         square.change_space(3, player.symbol)
+        square.display_board
       end
       it 'returns true' do
         selected_line = square.win_left_diagonal?(player.symbol)
