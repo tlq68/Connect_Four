@@ -265,7 +265,7 @@ class Player
   end
 
   def set_name(participant)
-    until self.name != ''
+    until name != ''
       puts "Enter a name for #{participant}".light_green
       self.name = gets.chomp 
     end
@@ -319,7 +319,7 @@ class Computer < Player
   end
 
   def column_selection
-    puts "It's #{self.name}'s turn".light_yellow
+    puts "It's #{name}'s turn".light_yellow
     num = rand(0..6)
     puts "The computer chose column #{num + 1}".light_yellow
     input = gets.chomp
@@ -328,7 +328,6 @@ class Computer < Player
     num
   end
 end
-
 
 game = Game.new
 

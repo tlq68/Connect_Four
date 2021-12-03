@@ -1,7 +1,5 @@
 require 'connect_four.rb'
 
-
-
 describe Game do
   let(:player) { Player.new }
   let(:computer) { Computer.new }
@@ -9,26 +7,6 @@ describe Game do
   let(:yellow_circle) { "\u{1F534}".light_yellow }
   let(:green_circle) { "\u{1F534}".green }
   subject(:game) { described_class.new }
-
-  describe '#play' do
-    # Not necessary to test this method as it only calls other methods
-  end
-
-  describe '#setup_game' do
-    # Not necessary to test this method as it only calls other methods
-  end
-
-  describe '#gameplay' do
-    # Not sure if the if statement needs testing...
-  end
-
-  describe '#start_game_message' do
-    # Not necessary to test puts method
-  end
-
-  describe '#choose_player' do
-    # Not necessary to test this method, but #players method should be tested
-  end
 
   describe '#players' do
     context 'when input is 1' do
@@ -77,14 +55,6 @@ describe Game do
     end
   end
 
-  describe '#set_tokens' do
-    # Not necessary to test, but Player#color_picker needs to be tested
-  end
-
-  describe '#same_token_check' do
-    # Not necessary to test.
-  end
-
   describe '#reset_symbols' do 
     context 'when triggered' do
       before do
@@ -96,26 +66,6 @@ describe Game do
         expect(player.symbol).to be nil  
       end
     end
-  end
-
-  describe '#show_board_and_tokens' do
-    # Not necessary to test #puts
-  end
-
-  describe '#board_full?' do
-    # Not necessary to test
-  end
-
-  describe '#add_turn' do
-    # Not necessay to test
-  end
-
-  describe '#drawn_game' do
-    # Not necessary to test
-  end
-
-  describe '#quit' do
-    # Not necessary to test
   end
 end
 
@@ -240,10 +190,6 @@ describe Board do
         expect(square.set_row(column)).to eq(-1)
       end
     end
-  end
-
-  describe '#win' do
-    # Not necessary to test, but the individual win methods should be tested
   end
 
   describe '#win_vertical?' do
@@ -519,8 +465,4 @@ describe Player do
       end
     end
   end
-end
-
-describe Computer do 
-
 end
