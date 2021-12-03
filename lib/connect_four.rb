@@ -2,6 +2,142 @@
 
 require 'colorize'
 
+
+class Game
+  attr_accessor :turn_counter, :board, :player1, :player2
+
+  def play
+    setup_game
+    gameplay
+    drawn_game
+    quit
+  end
+
+  def setup_game
+    system('clear') || system('cls')
+    @board = Board.new
+    @board.create_board
+    start_game_message
+    @turn_counter = 0
+    choose_player
+    @player1.set_name('Player1')
+    @player2.set_name('Player2')
+    set_tokens(player) until player_symbols_exist?(player1, player2)
+    same_token_check(player1, player2)
+    puts "\nYou can enter " + 'q'.light_red + ' at any time during the game to ' + 'quit'.red
+    puts "\nPress 'Enter' to continue"
+    gets.chomp
+  end
+
+  def gameplay
+    while !board_full?
+      # system('clear') || system('cls')
+      show_board_and_tokens
+      puts "Turn #{@turn_counter + 1}".light_green
+
+      current_player = which_turn(@player1, @player2)
+      column_selection = current_player.column_selection
+      break if column_selection == 'q'
+
+      if @board.set_row(column_selection).between?(0, 6)
+        add_turn
+        @board.change_space(column_selection, current_player.symbol)
+        @board.win(current_player)
+      end
+    end
+  end
+
+  def start_game_message
+    puts '--------------------------------------------------------------------------'
+    puts "\nWelcome to " + 'Connect 4'.light_yellow + '! The goal is in the name.'
+    puts 'You want to ' + 'connect four of your tokens'.cyan + ' in a row horizontally, vertically' + "\nor diagonally to win!"
+    puts "\nDuring the game, you will select a column (" + '1-7'.light_red + ') to drop in your token.'
+    puts "\n--------------------------------------------------------------------------"
+
+  end
+
+  def choose_player
+    player_input = 0
+    puts 'Who is playing?'.light_magenta
+
+    until player_input == 1 || player_input == 2
+      puts "\nWill the first participant be a " + 'human'.green + ' (enter ' + '1'.green + ') or a ' + 'computer'.light_yellow + ' (enter ' + '2'.light_yellow + ')?'
+      player_input = gets.chomp.to_i
+    end
+    @player1 = players(player_input)
+
+    player_input = 0
+    until player_input == 1 || player_input == 2
+      puts "\nWill the second participant be a " + 'human'.green + ' (enter ' + '1'.green + ') or a ' + 'computer'.light_yellow + ' (enter ' + '2'.light_yellow + ')?'
+      player_input = gets.chomp.to_i
+    end
+    @player2 = players(player_input)
+  end
+
+  def players(player_selection)
+    return Player.new if player_selection == 1
+    return Computer.new if player_selection == 2
+  end
+
+  def player_symbols_exist?(player1, player2)
+    player1.symbol.nil? && player2.symbol.nil?
+  end
+
+  def set_tokens(player)
+    input_player1 = 0
+    until input_player1.between?(1, 16)
+      player.display_colors
+      input_player1 = gets.chomp.to_i
+    end
+    player.color_picker(input_player1) 
+  end
+
+  def same_token_check(player1, player2)
+    while player1.symbol == player2.symbol
+      unless player_symbols_exist?(player1, player2)
+        reset_symbols(player1, player2)
+        break 
+      end
+      set_tokens(player1)
+      set_tokens(player2)
+    end
+  end
+
+  def reset_symbols(player1, player2)
+    player1.symbol = nil
+    player2.symbol = nil
+    puts "\nThe player tokens cannot be the same.".yellow
+    puts 'Please choose again.'.light_green
+  end
+
+  def show_board_and_tokens
+    @board.display_board
+    puts "#{@player1.name}'s token #{@player1.symbol}"
+    puts "#{@player2.name}'s token #{@player2.symbol}"
+  end
+
+  def board_full?
+    @turn_counter >= 43
+  end
+
+  def which_turn(player1, player2)
+    @turn_counter.even? ? player1 : player2
+  end
+
+  def add_turn
+    @turn_counter += 1
+  end
+
+  def drawn_game
+    puts 'The board is full and it seems to be a draw!'
+  end
+
+  def quit 
+    puts 'Thanks for playing!'
+    exit
+  end
+end
+
 class Board
   attr_accessor :symbol, :board
 
@@ -20,8 +156,11 @@ class Board
     puts '  |__|______________|__|'
   end
 
+  def display_board
+    format_board(@board)
+  end
+
   def select_space(row, column)
-    display_board
     [row, column] 
   end
 
@@ -31,38 +170,42 @@ class Board
     @board[row][column] = symbol
   end
 
-  def display_board
-    format_board(@board)
-  end
-
   def set_row(input)
     decrementer = 0
-
-    while decrementer <= 6
-
+    while decrementer <= 5
       break if free_space?(5 - decrementer, input) == true
+
       decrementer += 1
     end
     5 - decrementer
   end
 
   def free_space?(row, column)
-    return false if !row.between?(0, 6)
+    return false unless row.between?(0, 6)
+
     @board[row][column] == BLANK_CIRCLE
   end
 
-  def win(symbol)
+  def win(player)
+    system('clear') || system('cls')
     display_board
-    exit if win_vertical?(symbol) || win_horizontal?(symbol) || win_left_diagonal?(symbol) || win_right_diagonal?(symbol)
+    if win_vertical?(player.symbol) || win_horizontal?(player.symbol) || win_left_diagonal?(player.symbol) || win_right_diagonal?(player.symbol)
+      puts "Hurray! #{player.name} won!".light_yellow
+      exit
+    end
   end
 
   def win_vertical?(symbol)
+    puts 'vertical'
+
     (0..5).each do |row|
       (0..6).each do |column|
+        next if row < 3
         begin
           vertical_win = @board[row][column] == symbol && @board[row - 1][column] == symbol && @board[row - 2][column] == symbol && @board[row - 3][column] == symbol
           
         rescue NoMethodError
+          puts "vertical #{row} row, #{column} column".light_red
           
         end
           return vertical_win if vertical_win == true
@@ -72,12 +215,16 @@ class Board
   end
 
   def win_horizontal?(symbol)
+    puts 'horizontal'
+
     (0..5).each do |row|
       (0..6).each do |column|
+        next if column < 4
         begin
           horizontal_win = @board[row][column] == symbol && @board[row][column - 1] == symbol && @board[row][column - 2] == symbol && @board[row][column - 3] == symbol
           
         rescue NoMethodError
+          puts "horizontal #{row} row, #{column} column".light_red
           
         end
           return horizontal_win if horizontal_win == true
@@ -87,12 +234,17 @@ class Board
   end
 
   def win_left_diagonal?(symbol)
+    puts 'left diag.'
+
     (0...5).each do |row|
       (0..6).each do |column|
+        break if row > 2
+        break if column > 3
         begin
         left_diagonal_win =  @board[row][column] == symbol && @board[row + 1][column + 1] == symbol && @board[row + 2][column + 2] == symbol && @board[row + 3][column + 3] == symbol
           
         rescue NoMethodError
+          puts "left diag. #{row} row, #{column} column".light_red
           
         end
 
@@ -103,24 +255,29 @@ class Board
   end
 
   def win_right_diagonal?(symbol)
+    puts 'right diag'
+
     (0..5).each do |row|
       (0..6).each do |column|
+        next if (row + 3) >= 6
+        next if (column - 3) < 0
         begin
           right_diagonal_win = @board[row][column] == symbol && @board[row + 1][column - 1] == symbol && @board[row + 2][column - 2] == symbol && @board[row + 3][column - 3] == symbol
           
         rescue NoMethodError
+          puts "right diag. #{row} row, #{column} column".light_red
           
         end
-
           return right_diagonal_win if right_diagonal_win == true
       end
     end
+
     false
   end
 end
 
 class Player 
-  attr_accessor :symbol
+  attr_accessor :symbol, :name
 
   COLOR_HASH = {  '1' => "\u{1F534}".blue, 
                   '2' => "\u{1F534}".light_blue, 
@@ -140,15 +297,23 @@ class Player
                   '16' => "\u{1F534}".light_black 
                 }
   
-  def initialize(symbol = nil)
+  def initialize(symbol = nil, name = '')
     @symbol = symbol
+    @name = name
   end
 
-  def display_colors(name = nil)
-    puts "\nChoose a color #{name}".light_green
-    COLOR_HASH.each do |x, y|
-      puts "#{x}: #{y}" if x.to_i > 10
-      puts " #{x}: #{y}" if x.to_i < 10
+  def set_name(participant)
+    until self.name != ''
+      puts "Enter a name for #{participant}".light_green
+      self.name = gets.chomp 
+    end
+  end
+
+  def display_colors
+    puts "\nChoose a color #{self.name}".light_green
+    COLOR_HASH.each do |key, color|
+      puts "#{key}: #{color}" if key.to_i > 10
+      puts " #{key}: #{color}" if key.to_i < 10
     end
   end
 
@@ -158,23 +323,32 @@ class Player
   end
 
   def column_selection
+    puts "It's time to choose a column, #{self.name}. Select 1-7".light_green
     input = gets.chomp
     while !input.to_i.between?(1, 7) || input.downcase == 'q'
+      return input.downcase if input.downcase == 'q'
+
       puts 'Please choose a valid column'
       input = gets.chomp
     end
+
     input.to_i - 1
   end
 end
 
 class Computer < Player
-  attr_accessor :symbol
+  attr_accessor :symbol, :name
 
-  def initialize(symbol = nil)
+  def initialize(symbol = nil, name = '')
     @symbol = symbol
+    @name = name
   end
 
-  def display_colors(name = nil)
+  def set_name(participant)
+    super
+  end
+
+  def display_colors
     super
   end
 
@@ -183,156 +357,17 @@ class Computer < Player
   end
 
   def column_selection
-    puts "It's the computer's turn".green
-    gets.chomp
+    puts "It's #{self.name}'s turn".light_yellow
     num = rand(0..6)
     puts "The computer chose column #{num + 1}".light_yellow
+    input = gets.chomp
+    return input.downcase if input.downcase == 'q'
+
     num
   end
 end
 
-class Game
-  attr_accessor :turn_counter, :board, :player1, :player2
-
-  def play
-    setup_game
-    while !board_full?
-      current_player = which_turn(@player1, @player2)
-      column_selection = current_player.column_selection
-      quit(column_selection)
-      
-      if @board.set_row(column_selection).between?(0, 6)
-        add_turn
-        @board.change_space(column_selection, current_player.symbol)
-
-        @board.win(current_player.symbol)
-      else
-        puts 'Please choose an unfilled column'.cyan
-      end
-      @board.display_board
-
-      puts "What is this?".yellow
-      
-      puts @turn_counter, "Turns".green
-    end
-    # The next thing we need to do is set up a turn tracker.
-    # This will determine who is actually playing.
-    # Then we need to add the board display after every selection.
-    # We will need to use the select space method to actually select a space.
-  end
-
-  def setup_game
-    @board = Board.new
-    @board.format_board(board.create_board)
-    start_game_message
-    @turn_counter = 0
-    start_game_message
-    @player1 = choose_player_one
-    @player2 = choose_player_two
-    set_tokens(player1, player2) until player_symbols_exist?(player1, player2)
-    same_token_check(player1, player2)
-    puts "Player 1 token #{player1.symbol}"
-    puts "Player 2 token #{player2.symbol}"
-  end
-  
-  def set_tokens(player1, player2)
-    input_player1 = 0
-    while !input_player1.between?(1, 16)
-      player1.display_colors('Player 1')
-      input_player1 = gets.chomp.to_i
-    end
-    player1.color_picker(input_player1) 
-
-    input_player2 = 0
-    while !input_player2.between?(1, 16)
-      player2.display_colors('Player 2')
-      input_player2 = gets.chomp.to_i
-    end
-    player2.color_picker(input_player2)
-  end
-
-  def player_symbols_exist?(player1, player2)
-    player1.symbol.nil? && player2.symbol.nil?
-  end
-
-  def players(player_selection)
-    return Player.new if player_selection == 1
-    return Computer.new if player_selection == 2
-  end
-
-  def choose_player_one
-    input_player1 = 0
-    until valid_player_choice_input(input_player1)
-      puts "\nWill Player 1 be a human or a computer?"
-
-      input_player1 = gets.chomp.to_i
-    end
-    players(input_player1) 
-  end
-
-  def choose_player_two
-    input_player2 = 0
-    until valid_player_choice_input(input_player2)
-      puts 'Will Player 2 be a human or a computer?'
-      input_player2 = gets.chomp.to_i
-    end
-    players(input_player2) 
-  end
-
-  def same_token_check(player1, player2)
-    while player1.symbol == player2.symbol
-      puts 'did we make it here?'
-      reset_symbols(player1, player2) if !player_symbols_exist?(player1, player2)
-      break if !player1.symbol.nil? && !player2.symbol.nil?
-      set_tokens(player1, player2)
-    end
-  end
-
-  def reset_symbols(player1, player2)
-      player1.symbol = nil
-      player2.symbol = nil
-      puts "\nThe player tokens cannot be the same.".yellow
-      puts 'Please choose again.'.light_green
-  end
-
-  def start_game_message
-    puts 'Welcome to Connect 4! The goal is in the name.'
-    puts 'You want to connect four of your tokens in a row horizontally, vertically or diagonally.'
-    puts "\n During the game, you will select a column 1-7 to drop in your token"
-    puts "But first, who is playing?"
-  end
-
-  def select_participants
-    puts 'Who is going to play?'
-    puts 'Select "1" for human.'
-    puts 'Select "2" for computer.'
-  end
-
-  def valid_column_input(input)
-    input.between?(1..7)
-  end
-
-  def valid_player_choice_input(input)
-    input == 1 || input == 2
-  end
-
-  def add_turn
-    @turn_counter += 1
-  end
-
-  def board_full?
-    @turn_counter >= 42
-  end
-
-  def which_turn(player1, player2)
-    @turn_counter.even? ? player1 : player2
-  end
-
-  def quit(input)
-    exit if input == 'q'
-  end
-end
 
 game = Game.new
 
-game.play
+# game.play
